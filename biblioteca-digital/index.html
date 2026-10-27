@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rincón Estelar · Biblioteca de ciencia ficción y fantasía</title>
+  <meta name="description" content="Rincón Estelar: catálogo de ciencia ficción y fantasía con préstamos, devoluciones, historial y resumen, guardado en tu navegador.">
+  <meta name="keywords" content="ciencia ficción, fantasía, libros, préstamos, catálogo, biblioteca">
+  <meta name="theme-color" content="#a63f0b">
+  <meta property="og:title" content="Rincón Estelar">
+  <meta property="og:description" content="Ciencia ficción y fantasía para prestar y devolver.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="cabecera">
+    <div class="marca">
+      <img src="img/logo.svg" alt="Logotipo de Rincón Estelar: un planeta con anillo" width="44" height="44">
+      <div>
+        <h1>Rincón Estelar</h1>
+        <p class="lema">Ciencia ficción y fantasía</p>
+      </div>
+    </div>
+    <nav id="menu" aria-label="Navegación principal">
+      <ul>
+        <li><a href="#catalogo" data-vista="catalogo" class="activo" aria-current="page">Catálogo</a></li>
+        <li><a href="#prestamos" data-vista="prestamos">Mis préstamos <span id="num-prestamos">(0)</span></a></li>
+        <li><a href="#agregar" data-vista="agregar">Nuevo libro</a></li>
+        <li><a href="#ajustes" data-vista="ajustes">Resumen y ajustes</a></li>
+      </ul>
+    </nav>
+    <p class="saludo" id="saludo" hidden></p>
+  </header>
+
+  <main>
+    <!-- Vista 1: Catálogo -->
+    <section id="vista-catalogo" class="vista" aria-labelledby="t-catalogo">
+      <h2 id="t-catalogo">Catálogo</h2>
+      <p class="subtitulo">Explora los mundos que guarda el Rincón.</p>
+      <p id="msg-catalogo" class="mensaje" role="status" hidden></p>
+
+      <div class="controles">
+        <div class="campo">
+          <label for="buscar">Buscar por título o autor</label>
+          <input type="search" id="buscar" autocomplete="off" placeholder="Ej.: Dune, Asimov, Le Guin…">
+        </div>
+        <div class="campo">
+          <label for="filtro-genero">Género</label>
+          <select id="filtro-genero"></select>
+        </div>
+        <div class="campo">
+          <label for="orden-campo">Ordenar por</label>
+          <select id="orden-campo">
+            <option value="titulo">Título</option>
+            <option value="autor">Autor</option>
+            <option value="anio">Año</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label for="orden-dir">Sentido</label>
+          <select id="orden-dir">
+            <option value="asc">Ascendente</option>
+            <option value="desc">Descendente</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filtros" role="group" aria-label="Filtrar por estado">
+        <button type="button" class="btn btn-filtro activo" data-filtro="todos" aria-pressed="true">Todos</button>
+        <button type="button" class="btn btn-filtro" data-filtro="disponibles" aria-pressed="false">Disponibles</button>
+        <button type="button" class="btn btn-filtro" data-filtro="prestados" aria-pressed="false">Prestados</button>
+      </div>
+
+      <p id="contador" class="contador" aria-live="polite"></p>
+      <div id="lista-libros" class="rejilla"></div>
+      <p id="vacio-catalogo" class="vacio" hidden>Ningún libro de esta galaxia coincide con tu búsqueda y los filtros activos.</p>
+    </section>
+
+    <!-- Vista 2: Mis préstamos -->
+    <section id="vista-prestamos" class="vista" aria-labelledby="t-prestamos" hidden>
+      <h2 id="t-prestamos">Mis préstamos</h2>
+      <p class="subtitulo">Libros que andan de viaje y los que ya regresaron.</p>
+      <p id="msg-prestamos" class="mensaje" role="status" hidden></p>
+      <ul id="lista-activos" class="lista"></ul>
+      <p id="vacio-activos" class="vacio" hidden>No hay ningún préstamo activo. Elige un libro del catálogo y envíalo de viaje.</p>
+
+      <h3>Historial</h3>
+      <ul id="lista-historial" class="lista"></ul>
+      <p id="vacio-historial" class="vacio" hidden>Aún no ha regresado ningún libro de su viaje.</p>
+    </section>
+
+    <!-- Vista 3: Agregar y editar -->
+    <section id="vista-agregar" class="vista" aria-labelledby="t-agregar" hidden>
+      <h2 id="t-agregar">Nuevo libro</h2>
+      <p class="subtitulo">Suma una nueva historia a la estantería.</p>
+      <p id="msg-formulario" class="mensaje" role="status" hidden></p>
+      <form id="form-libro" class="formulario" novalidate>
+        <div class="campo">
+          <label for="campo-titulo">Título</label>
+          <input type="text" id="campo-titulo" autocomplete="off" aria-describedby="error-titulo">
+          <p class="error" id="error-titulo"></p>
+        </div>
+        <div class="campo">
+          <label for="campo-autor">Autor</label>
+          <input type="text" id="campo-autor" autocomplete="off" aria-describedby="error-autor">
+          <p class="error" id="error-autor"></p>
+        </div>
+        <div class="campo">
+          <label for="campo-anio">Año</label>
+          <input type="number" id="campo-anio" aria-describedby="error-anio">
+          <p class="error" id="error-anio"></p>
+        </div>
+        <div class="campo">
+          <label for="campo-genero">Género</label>
+          <select id="campo-genero" aria-describedby="error-genero"></select>
+          <p class="error" id="error-genero"></p>
+        </div>
+        <div class="campo">
+          <label for="campo-comentario">Comentario</label>
+          <textarea id="campo-comentario" rows="4" maxlength="120" aria-describedby="contador-comentario error-comentario"></textarea>
+          <p class="ayuda" id="contador-comentario" aria-live="polite">Quedan 120 caracteres</p>
+          <p class="error" id="error-comentario"></p>
+        </div>
+        <div class="campo campo-check">
+          <input type="checkbox" id="campo-coleccion" aria-describedby="error-coleccion">
+          <label for="campo-coleccion">Ejemplar de colección</label>
+          <p class="error" id="error-coleccion"></p>
+        </div>
+        <div class="acciones">
+          <button type="submit" id="btn-enviar" class="btn btn-primario">Añadir al catálogo</button>
+          <button type="button" id="btn-cancelar-edicion" class="btn btn-sec" hidden>Cancelar</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Vista 4: Resumen y ajustes -->
+    <section id="vista-ajustes" class="vista" aria-labelledby="t-ajustes" hidden>
+      <h2 id="t-ajustes">Resumen y ajustes</h2>
+      <p class="subtitulo">El pulso del Rincón y tus preferencias.</p>
+      <p id="msg-ajustes" class="mensaje" role="status" hidden></p>
+
+      <h3>Resumen</h3>
+      <div id="resumen" class="estadisticas"></div>
+      <h3>Libros por género</h3>
+      <ul id="resumen-generos" class="lista-generos"></ul>
+
+      <h3>Ajustes</h3>
+      <div class="ajustes">
+        <button type="button" id="btn-tema" class="btn btn-sec">Activar modo noche</button>
+
+        <form id="form-usuario" class="formulario" novalidate>
+          <div class="campo">
+            <label for="campo-usuario">Tu nombre</label>
+            <input type="text" id="campo-usuario" maxlength="40" autocomplete="off" aria-describedby="error-usuario">
+            <p class="error" id="error-usuario"></p>
+          </div>
+          <button type="submit" class="btn btn-primario">Guardar nombre</button>
+        </form>
+
+        <button type="button" id="btn-restablecer" class="btn btn-peligro">Restablecer biblioteca</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pie">
+    <p>Rincón Estelar · Tus libros y préstamos se guardan en este navegador.</p>
+  </footer>
+
+  <!-- Modal: pedir a quién se presta -->
+  <div class="modal-fondo" id="modal-prestar" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-prestar-titulo">
+      <h2 id="modal-prestar-titulo">Enviar de viaje</h2>
+      <p id="modal-prestar-libro"></p>
+      <form id="form-prestar" novalidate>
+        <div class="campo">
+          <label for="input-persona">¿A quién se presta?</label>
+          <input type="text" id="input-persona" autocomplete="off" aria-describedby="error-persona">
+          <p class="error" id="error-persona"></p>
+        </div>
+        <div class="acciones">
+          <button type="button" class="btn btn-sec" data-accion="cancelar-modal">Cancelar</button>
+          <button type="submit" class="btn btn-primario">Prestar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: confirmar (eliminar / restablecer) -->
+  <div class="modal-fondo" id="modal-confirmar" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-confirmar-texto">
+      <h2 id="modal-confirmar-texto"></h2>
+      <p id="modal-confirmar-detalle"></p>
+      <div class="acciones">
+        <button type="button" class="btn btn-sec" data-accion="cancelar-modal">Cancelar</button>
+        <button type="button" class="btn btn-peligro" id="btn-confirmar">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/logica.js"></script>
+  <script src="js/datos.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
